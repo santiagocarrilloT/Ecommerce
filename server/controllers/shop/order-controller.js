@@ -19,6 +19,8 @@ const createOrder = async (req, res) => {
       cartId,
     } = req.body;
 
+    console.log("Address Info:", addressInfo);
+
     const create_payment_json = {
       intent: "sale",
       payer: {
@@ -161,7 +163,7 @@ const getOrderDetails = async (req, res) => {
     if (!orders) {
       return res.status(404).json({
         success: false,
-        message: "No la orden",
+        message: "No se encontró la orden",
       });
     }
 

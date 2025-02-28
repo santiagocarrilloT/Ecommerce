@@ -84,6 +84,7 @@ function ShoppingCheckout() {
       if (data?.payload?.success) {
         setisPaymentStart(true);
       } else {
+        setisPaymentStart(false);
       }
     });
   }

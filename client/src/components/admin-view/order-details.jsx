@@ -1,14 +1,42 @@
 import { Separator } from "@radix-ui/react-select";
 import { DialogContent } from "../ui/dialog";
 import { Label } from "../ui/label";
+import CommonForm from "../common/form";
+import { useState } from "react";
 import { Badge } from "../ui/badge";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getAllOrdersForAdmin,
+  getOrderDetailsForAdmin,
+  updateOrderStatus,
+} from "@/store/admin/order-slice";
 
-function ShoppingOrderDetails({ orderDetails }) {
+const initialFormData = {
+  status: "",
+};
+
+function AdminOrdersDetailsView({ orderDetails }) {
   const { user } = useSelector((state) => state.auth);
+  const [formData, setFormData] = useState(initialFormData);
+  const dispatch = useDispatch();
 
+  function handleUpdateStatus(event) {
+    event.preventDefault;
+    const { status } = formData;
+
+    dispatch(
+      updateOrderStatus({ id: orderDetails?._id, orderStatus: status })
+    ).then((data) => {
+      console.log(data, "data");
+      if (data?.payload?.success) {
+        dispatch(getOrderDetailsForAdmin(orderDetails?._id));
+        dispatch(getAllOrdersForAdmin());
+        setFormData(initialFormData);
+      }
+    });
+  }
   return (
-    <DialogContent className="sm:max-w-[600px]">
+    <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
       <div className="grid gap-6">
         <div className="grid gap-2">
           <div className="flex mt-6 items-center justify-between">
@@ -79,8 +107,31 @@ function ShoppingOrderDetails({ orderDetails }) {
             </div>
           </div>
         </div>
+
+        <div>
+          <CommonForm
+            formControls={[
+              {
+                label: "Order Status",
+                name: "status",
+                componentType: "select",
+                options: [
+                  { id: "pending", label: "Pending" },
+                  { id: "inProcess", label: "In Process" },
+                  { id: "inShipping", label: "In Shipping" },
+                  { id: "delivered", label: "Delivered" },
+                  { id: "rejected", label: "Rejected" },
+                ],
+              },
+            ]}
+            formData={formData}
+            setFormData={setFormData}
+            buttonText={"Update Order Status"}
+            onSubmit={handleUpdateStatus}
+          />
+        </div>
       </div>
     </DialogContent>
   );
 }
-export default ShoppingOrderDetails;
+export default AdminOrdersDetailsView;

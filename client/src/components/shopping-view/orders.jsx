@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Dialog } from "../ui/dialog";
+
 import {
   Table,
   TableBody,
@@ -18,6 +17,8 @@ import {
   resetOrderDetails,
 } from "@/store/shop/order-slice";
 import { Badge } from "../ui/badge";
+import { Dialog } from "../ui/dialog";
+import { Button } from "../ui/button";
 
 function ShoppingOrders() {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
@@ -84,11 +85,13 @@ function ShoppingOrders() {
                         }}
                       >
                         <Button
-                          onClick={() => handleFetchOrderDetails(item?._id)}
+                          onClick={() => {
+                            handleFetchOrderDetails(item?._id);
+                          }}
                         >
-                          View Details
+                          Ver Detalles
                         </Button>
-                        <ShoppingOrderDetails orderDetails={orderDetails}/>
+                        <ShoppingOrderDetails orderDetails={orderDetails} />
                       </Dialog>
                     </TableCell>
                   </TableRow>
