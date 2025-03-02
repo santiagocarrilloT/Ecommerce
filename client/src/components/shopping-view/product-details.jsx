@@ -8,12 +8,44 @@ import { useDispatch, useSelector } from "react-redux";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { useToast } from "@/hooks/use-toast";
 import { setProductDetails } from "@/store/shop/products-slice";
+import { Label } from "../ui/label";
+import StartRaitingComponent from "../common/star-rating";
+import { useEffect, useState } from "react";
+import { addReview, getReviews } from "@/store/shop/review-slice";
 
 function ProductDetailsDialog({ open, setOpen, productDetails }) {
+  const [reviewMsg, setReviewMsg] = useState("");
+  const [raiting, setRaiting] = useState(0);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { cartItems } = useSelector((state) => state.shopCart);
+  const { reviews } = useSelector((state) => state.shopReview);
   const { toast } = useToast();
-  function handleAddToCart(getCurrentProductId) {
+
+  function handleRaitingChange(getRaiting) {
+    setRaiting(getRaiting);
+  }
+
+  function handleAddToCart(getCurrentProductId, getTotalStock) {
+    let getCartItems = cartItems.items || [];
+
+    if (getCartItems.length > 0) {
+      const indexOfCurrentItem = getCartItems.findIndex(
+        (item) => item.productId === getCurrentProductId
+      );
+      if (indexOfCurrentItem > -1) {
+        const getQuantity = getCartItems[indexOfCurrentItem].quantity;
+        if (getQuantity + 1 > getTotalStock) {
+          toast({
+            title: `Solo existían ${getQuantity} unidades. !Lo sentimos!`,
+            variant: "destructive",
+          });
+
+          return;
+        }
+      }
+    }
+
     dispatch(
       addToCart({
         userId: user?.id,
@@ -22,7 +54,6 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       })
     ).then((data) => {
       if (data?.payload?.success) {
-        console.log("Cart updated");
         dispatch(fetchCartItems(user?.id));
         toast({
           title: "Producto agregado al carrito",
@@ -30,10 +61,38 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
       }
     });
   }
+
   function handleDialogClose() {
     setOpen(false);
     dispatch(setProductDetails());
+    setRaiting(0);
+    setReviewMsg("");
   }
+
+  function handleAddReview() {
+    dispatch(
+      addReview({
+        productId: productDetails?._id,
+        userId: user?.id,
+        userName: user?.userName,
+        reviewMessage: reviewMsg,
+        reviewValue: raiting,
+      })
+    ).then((data) => {
+      if (data.payload.success) {
+        dispatch(getReviews(productDetails?._id));
+        toast({
+          title: "!Gracias¡ Review agregada correctamente",
+        });
+      }
+    });
+  }
+
+  useEffect(() => {
+    if (productDetails !== null) dispatch(getReviews(productDetails?._id));
+  }, [productDetails]);
+
+  console.log(reviews, "reviews");
 
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
@@ -79,12 +138,23 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
             <span className="text-muted-foreground">{4.5}</span>
           </div>
           <div className="mt-5 mb-5">
-            <Button
-              onClick={() => handleAddToCart(productDetails?._id)}
-              className="w-full"
-            >
-              Add to car
-            </Button>
+            {productDetails?.totalStock === 0 ? (
+              <Button className="w-full opacity-60 cursor-not-allowed">
+                Out of Stock
+              </Button>
+            ) : (
+              <Button
+                onClick={() =>
+                  handleAddToCart(
+                    productDetails?._id,
+                    productDetails?.totalStock
+                  )
+                }
+                className="w-full"
+              >
+                Add to Cart
+              </Button>
+            )}
           </div>
           <Separator />
           <div className="max-h-[300px] overflow-auto">
@@ -151,9 +221,26 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 </div>
               </div>
             </div>
-            <div className="mt-6 flex gap-2">
-              <Input placeholder="Escribe una review..." />
-              <Button>Enviar</Button>
+            <div className="mt-10 flex-col flex gap-2">
+              <Label>Write a review</Label>
+              <div className="flex gap-1">
+                <StartRaitingComponent
+                  raiting={raiting}
+                  handleRaitingChange={handleRaitingChange}
+                />
+              </div>
+              <Input
+                name="reviewMsg"
+                value={reviewMsg}
+                onChange={(event) => setReviewMsg(event.target.value)}
+                placeholder="Escribe una review..."
+              />
+              <Button
+                onClick={handleAddReview}
+                disabled={reviewMsg.trim() === ""}
+              >
+                Enviar
+              </Button>
             </div>
           </div>
         </div>

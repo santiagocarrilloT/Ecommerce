@@ -11,11 +11,6 @@ import {
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 
-const types = {
-  INPUT: "input",
-  SELECT: "select",
-};
-
 function CommonForm({
   formControls,
   formData,
