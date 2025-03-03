@@ -41,6 +41,15 @@ const App = () => {
       <h1>Header Component</h1>
 
       <Routes>
+        <Route
+          path="/"
+          element={
+            <CheckAuth isAuthenticated={isAuthenticated} user={user}>
+              <AuthLayout />
+            </CheckAuth>
+          }
+        />
+
         {/* Autentication */}
         <Route
           path="/auth"
